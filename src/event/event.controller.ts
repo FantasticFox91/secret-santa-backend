@@ -4,10 +4,14 @@ import {
   Post,
   Get,
   Body,
+  Patch,
+  Param,
   HttpStatus,
   HttpException,
+  UseGuards,
 } from '@nestjs/common';
 import { EventService } from './event.service';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('events')
 export class EventController {
@@ -38,6 +42,37 @@ export class EventController {
         {
           status: HttpStatus.FORBIDDEN,
           error: 'Failed to create event',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { name: string; date: Date; remind: boolean },
+  ) {
+    const { name, date, remind } = body;
+
+    try {
+      const event = await this.eventsService.updateEvent(
+        id,
+        name,
+        date,
+        remind,
+      );
+      return {
+        status: HttpStatus.OK,
+        message: 'Event updated successfully',
+        event,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Failed to update event',
         },
         HttpStatus.FORBIDDEN,
       );
