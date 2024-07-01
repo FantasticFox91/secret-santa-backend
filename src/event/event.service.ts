@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class EventService {
@@ -94,6 +95,32 @@ export class EventService {
       console.error('Error declining invitation:', error);
       throw new Error('Unable to decline invitation');
     }
+  }
+
+  async acceptInvitation(email, password) {
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password, salt);
+
+    console.log(email, password);
+    try {
+      await this.prisma.user.update({
+        where: { email },
+        data: {
+          hashedPassword: hash,
+        },
+      });
+
+      await this.prisma.userStatus.updateMany({
+        where: {
+          user: {
+            email: email,
+          },
+        },
+        data: {
+          status: 'ACCEPTED',
+        },
+      });
+    } catch (error) {}
   }
 
   async updateEvent(id: string, name: string, date: Date, remind: boolean) {
