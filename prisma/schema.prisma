@@ -25,7 +25,7 @@ enum Status {
 model User {
   id                  Int           @id @default(autoincrement())
   email               String        @unique
-  hashedPassword      String
+  hashedPassword      String?
   accessToken         String?
   refreshToken        String?
   refreshTokenExpire  DateTime?

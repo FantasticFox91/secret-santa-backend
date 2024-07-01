@@ -28,6 +28,16 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard)
+  @Post('invite')
+  @HttpCode(201)
+  async inviteUser(
+    @Body() body: { email: string; name: string; eventID: string },
+  ) {
+    const { email, name, eventID } = body;
+    return this.authService.inviteUser(email, name, eventID);
+  }
+
+  @UseGuards(AuthGuard)
   @Get('guard')
   async test() {
     console.log('test');

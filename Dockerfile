@@ -14,9 +14,10 @@ RUN yarn install
 COPY . .
 
 # Build the app
-RUN yarn add bcrypt
-
 RUN yarn build
+
+# Copy email templates
+COPY src/mail/templates /app/dist/mail/templates
 
 EXPOSE 80
 

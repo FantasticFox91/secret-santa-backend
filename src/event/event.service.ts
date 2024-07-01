@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as jwt from 'jsonwebtoken';
 
@@ -54,6 +54,45 @@ export class EventService {
     } catch (error) {
       console.error('Error fetching user events:', error);
       throw new Error('Unable to fetch user events');
+    }
+  }
+
+  async getRSVPEvent(eventId) {
+    try {
+      const event = await this.prisma.event.findUnique({
+        where: { id: eventId },
+      });
+
+      return event;
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      throw new Error('Unable to fetch user event');
+    }
+  }
+
+  async declineInvitation(email) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!user) {
+        throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+      }
+
+      await this.prisma.userStatus.updateMany({
+        where: {
+          user: {
+            email: email,
+          },
+        },
+        data: {
+          status: 'DECLINED',
+        },
+      });
+    } catch (error) {
+      console.error('Error declining invitation:', error);
+      throw new Error('Unable to decline invitation');
     }
   }
 }

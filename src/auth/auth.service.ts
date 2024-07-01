@@ -1,11 +1,15 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private mailerService: MailService,
+  ) {}
 
   async createUser(email: string, password: string) {
     const existingUser = await this.prisma.user.findUnique({
@@ -76,5 +80,68 @@ export class AuthService {
     });
 
     return { accessToken: token };
+  }
+
+  async inviteUser(email: string, name: string, eventID: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    const existingEvent = await this.prisma.event.findUnique({
+      where: { id: eventID },
+    });
+
+    if (!existingEvent) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
+
+    let user;
+    try {
+      user = await this.prisma.user.create({
+        data: {
+          firstName: name,
+          email: email,
+          role: 'USER',
+          status: {
+            create: {
+              eventId: eventID,
+              status: 'INVITED',
+            },
+          },
+        },
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Failed to create user',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    const inviteLink = `http://localhost:3000/rsvp/${eventID}?email=${encodeURIComponent(email)}`;
+    const context = {
+      name: `${name}`,
+      url: `${inviteLink}`,
+    };
+
+    try {
+      await this.mailerService.sendEmail(
+        email,
+        "Jingle all the way! You're invited to a Secret Santa Celebration",
+        'test',
+        context,
+      );
+    } catch (error) {
+      console.error('Error sending email:', error);
+      throw new HttpException(
+        'Failed to send invitation email',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return user;
   }
 }
