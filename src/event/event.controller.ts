@@ -48,6 +48,28 @@ export class EventController {
     }
   }
 
+  @Post('accept')
+  async acceptInvitation(
+    @Body() body: { email: string; password: string; avatar: File },
+  ) {
+    const { email, password } = body;
+    try {
+      await this.eventsService.acceptInvitation(email, password);
+      return {
+        status: HttpStatus.OK,
+        message: 'Invitation accepted',
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to accept invitation',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
   @UseGuards(AuthGuard)
   @Patch(':id')
   async update(
