@@ -95,4 +95,23 @@ export class EventService {
       throw new Error('Unable to decline invitation');
     }
   }
+
+  async updateEvent(id: string, name: string, date: Date, remind: boolean) {
+    try {
+      const event = await this.prisma.event.update({
+        where: { id: id },
+        data: {
+          name: name,
+          date: date,
+          sendReminder: remind,
+          updatedAt: new Date(),
+        },
+      });
+
+      return event;
+    } catch (error) {
+      console.error('Error updating event:', error);
+      throw new Error('Unable to update event');
+    }
+  }
 }
