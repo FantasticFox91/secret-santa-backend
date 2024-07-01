@@ -100,4 +100,37 @@ export class EventController {
     }
     return;
   }
+
+  @Get(':eventId')
+  async getEvent(@Param() params: { eventId: string }) {
+    try {
+      const event = await this.eventsService.getRSVPEvent(params.eventId);
+      return {
+        event,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to find your event',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('decline/:email')
+  async declineInvitation(@Param() params: { email: string }) {
+    try {
+      await this.eventsService.declineInvitation(params.email);
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to decline invitation',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
 }
