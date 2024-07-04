@@ -9,7 +9,14 @@ import { EventModule } from './event/event.module';
 import { MailModule } from './mail/mail.module';
 
 @Module({
-  imports: [LinkModule, AuthModule, EventModule, PrismaModule, MailModule],
+  imports: [
+    LinkModule,
+    AuthModule,
+    EventModule,
+    PrismaModule,
+    MailModule,
+    UserModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -79,7 +79,16 @@ export class AuthService {
       },
     });
 
-    return { accessToken: token };
+    const basicUserInfo = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatar: user.avatar,
+      role: user.role,
+    };
+
+    return { user: basicUserInfo, accessToken: token };
   }
 
   async inviteUser(email: string, name: string, eventID: string) {

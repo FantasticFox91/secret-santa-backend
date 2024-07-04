@@ -49,6 +49,13 @@ export class EventService {
 
       const events = await this.prisma.event.findMany({
         where: { creatorId: userId },
+        include: {
+          userStatus: {
+            include: {
+              user: true,
+            },
+          },
+        },
       });
 
       return events;
@@ -101,7 +108,6 @@ export class EventService {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
 
-    console.log(email, password);
     try {
       await this.prisma.user.update({
         where: { email },
