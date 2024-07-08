@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { EventModule } from './event/event.module';
 import { MailModule } from './mail/mail.module';
+import { WishlistModule } from './wishlist/wishlist.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MailModule } from './mail/mail.module';
     PrismaModule,
     MailModule,
     UserModule,
+    WishlistModule,
   ],
   controllers: [AppController],
   providers: [AppService],

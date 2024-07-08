@@ -93,7 +93,7 @@ model WishList {
   event             Event         @relation(fields: [eventId], references: [id])
   siteImage         String?
   siteTitle         String?
-  siteDescription   String?
+  siteDescription   String?       @db.Text
 }
 
 model ThankYou {
