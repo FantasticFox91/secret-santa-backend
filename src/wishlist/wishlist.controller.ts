@@ -41,7 +41,7 @@ export class WishlistController {
   @Post('add')
   async addUserWishlist(
     @Headers('authorization') authHeader: string,
-    @Body() body: { items: { text: string; link: string }[]; eventId: string },
+    @Body() body: { items: { name: string; url: string }[]; eventId: string },
   ) {
     const { items, eventId } = body;
     const token = authHeader?.split(' ')[1];

@@ -28,8 +28,9 @@ export class WishlistService {
 
   async addUserWishlist(
     items: {
-      text: string;
-      link: string;
+      id?: number;
+      name: string;
+      url: string;
       title?: string;
       description?: string;
       image?: string;
@@ -45,12 +46,22 @@ export class WishlistService {
       ) as jwt.JwtPayload;
 
       const userId = decoded.userId;
+
+      const wishList = await this.prisma.wishList.findMany({
+        where: {
+          userId: userId,
+          eventId: eventId,
+        },
+      });
+
+      const itemsToAdd = items.filter((items) => !items.hasOwnProperty('id'));
+
       const dbItems = await Promise.all(
-        items.map(async (item) => {
-          const response = await this.link.parseHtml(item.link);
+        itemsToAdd.map(async (item) => {
+          const response = await this.link.parseHtml(item.url);
           return {
-            name: item.text,
-            url: item.link,
+            name: item.name,
+            url: item.url,
             userId: userId,
             eventId: eventId,
             siteImage: response.image,
@@ -60,10 +71,25 @@ export class WishlistService {
         }),
       );
 
+      const itemsToDelete = wishList
+        .filter((el) => el.hasOwnProperty('id'))
+        .filter((el) => !items.some((item) => item.id === el.id));
+
       // Save items to the database
       const createdItems = await this.prisma.wishList.createMany({
         data: dbItems,
       });
+
+      // Delete items from database
+      if (itemsToDelete.length) {
+        const deletedItems = await this.prisma.wishList.deleteMany({
+          where: {
+            id: {
+              in: itemsToDelete.map((item) => item.id),
+            },
+          },
+        });
+      }
     } catch (error) {
       console.error('Error adding items to event wishlist:', error);
       throw new Error('Unable to fetch user wishlist');
