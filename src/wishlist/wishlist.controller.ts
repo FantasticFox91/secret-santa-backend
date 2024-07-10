@@ -1,24 +1,28 @@
 import {
   Controller,
   UseGuards,
-  Post,
-  Body,
-  HttpException,
   HttpStatus,
+  HttpException,
+  Body,
+  Post,
+  Headers,
 } from '@nestjs/common';
-import { UserService } from './user.service';
+import { WishlistService } from './wishlist.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
-@Controller('user')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+@Controller('wishlist')
+export class WishlistController {
+  constructor(private readonly wishlistService: WishlistService) {}
 
   @UseGuards(AuthGuard)
-  @Post('/wishlist')
+  @Post('user')
   async getUserWishlist(@Body() body: { userId: string; eventId: string }) {
     const { userId, eventId } = body;
     try {
-      const wishList = await this.userService.getUserWishlist(userId, eventId);
+      const wishList = await this.wishlistService.getUserWishlist(
+        userId,
+        eventId,
+      );
       return {
         wishList,
       };
@@ -34,12 +38,19 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard)
-  @Post('/wishlist/add')
-  async addWishlist(
-    @Body() body: { wishlist: { text: string; url: string }[] },
+  @Post('add')
+  async addUserWishlist(
+    @Headers('authorization') authHeader: string,
+    @Body() body: { items: { name: string; url: string }[]; eventId: string },
   ) {
-    const { wishlist } = body;
+    const { items, eventId } = body;
+    const token = authHeader?.split(' ')[1];
     try {
+      const response = await this.wishlistService.addUserWishlist(
+        items,
+        eventId,
+        token,
+      );
     } catch (error) {
       throw new HttpException(
         {

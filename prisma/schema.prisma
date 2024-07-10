@@ -83,7 +83,7 @@ model Pairings {
 model WishList {
   id                Int           @id @default(autoincrement())
   name              String
-  url               String
+  url               String        @db.Text
   userId            Int
   user              User          @relation(fields: [userId], references: [id])
   createdAt         DateTime      @default(now())
@@ -93,7 +93,7 @@ model WishList {
   event             Event         @relation(fields: [eventId], references: [id])
   siteImage         String?
   siteTitle         String?
-  siteDescription   String?
+  siteDescription   String?       @db.Text
 }
 
 model ThankYou {

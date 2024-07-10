@@ -11,7 +11,7 @@ export class AuthService {
     private mailerService: MailService,
   ) {}
 
-  async createUser(email: string, password: string) {
+  async createUser(email: string, password: string, username: string) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -22,10 +22,15 @@ export class AuthService {
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
+    const nameAndSecondName = username.split(' ');
+    const name = nameAndSecondName[0];
+    const lastName = nameAndSecondName.length > 1 ? nameAndSecondName[1] : '';
 
     try {
       const user = await this.prisma.user.create({
         data: {
+          firstName: name,
+          lastName: lastName,
           email: email,
           hashedPassword: hash,
           role: 'ADMIN',
@@ -79,7 +84,41 @@ export class AuthService {
       },
     });
 
-    return { accessToken: token };
+    const basicUserInfo = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      avatar: user.avatar,
+      role: user.role,
+    };
+
+    return { user: basicUserInfo, accessToken: token };
+  }
+
+  async loginUserByToken(token) {
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET,
+      ) as jwt.JwtPayload;
+      const email = decoded.email;
+
+      const user = await this.prisma.user.findUnique({ where: { email } });
+
+      const basicUserInfo = {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+        role: user.role,
+      };
+
+      return basicUserInfo;
+    } catch (e) {
+      throw new HttpException('Invalid credentials', HttpStatus.UNAUTHORIZED);
+    }
   }
 
   async inviteUser(email: string, name: string, eventID: string) {
