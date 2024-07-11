@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { EventModule } from './event/event.module';
 import { MailModule } from './mail/mail.module';
 import { WishlistModule } from './wishlist/wishlist.module';
+import { MatchingModule } from './matching/matching.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
     MailModule,
     UserModule,
     WishlistModule,
+    MatchingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
