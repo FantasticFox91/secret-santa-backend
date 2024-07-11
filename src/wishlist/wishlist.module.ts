@@ -8,5 +8,6 @@ import { LinkModule } from 'src/link/link.module';
   imports: [PrismaModule, LinkModule],
   providers: [WishlistService],
   controllers: [WishlistController],
+  exports: [WishlistService],
 })
 export class WishlistModule {}
