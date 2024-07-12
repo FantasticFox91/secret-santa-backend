@@ -2,9 +2,11 @@ import {
   Controller,
   UseGuards,
   Post,
+  Get,
   Body,
   HttpException,
   HttpStatus,
+  Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -45,6 +47,22 @@ export class UserController {
         {
           status: HttpStatus.BAD_REQUEST,
           error: 'Failed to add items to your wishlist',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    try {
+      return this.userService.getUserById(id);
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to find user',
         },
         HttpStatus.BAD_REQUEST,
       );

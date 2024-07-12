@@ -6,6 +6,8 @@ import { MailService } from 'src/mail/mail.service';
 import { WishlistService } from 'src/wishlist/wishlist.service';
 import { UserService } from 'src/user/user.service';
 import { LinkService } from 'src/link/link.service';
+import { EventService } from 'src/event/event.service';
+import { TaskSchedulerService } from 'src/task-scheduler/task-scheduler.service';
 
 @Module({
   imports: [PrismaModule],
@@ -15,6 +17,8 @@ import { LinkService } from 'src/link/link.service';
     WishlistService,
     UserService,
     LinkService,
+    EventService,
+    TaskSchedulerService,
   ],
   controllers: [MatchingController],
 })
