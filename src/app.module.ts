@@ -9,6 +9,8 @@ import { EventModule } from './event/event.module';
 import { MailModule } from './mail/mail.module';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { MatchingModule } from './matching/matching.module';
+import { TaskSchedulerModule } from './task-scheduler/task-scheduler.module';
+import { ThankYouModule } from './thank-you/thank-you.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { MatchingModule } from './matching/matching.module';
     UserModule,
     WishlistModule,
     MatchingModule,
+    TaskSchedulerModule,
+    ThankYouModule,
   ],
   controllers: [AppController],
   providers: [AppService],
