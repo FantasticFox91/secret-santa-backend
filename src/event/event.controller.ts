@@ -123,12 +123,49 @@ export class EventController {
     return;
   }
 
-  @Get(':eventId')
+  @Get('/:eventId')
   async getEvent(@Param() params: { eventId: string }) {
     try {
       const event = await this.eventsService.getRSVPEvent(params.eventId);
       return {
         event,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to find your event',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('/past/:eventId')
+  async getPastEvent(@Param() params: { eventId: string }) {
+    try {
+      const result = await this.eventsService.getPastEvent(params.eventId);
+      return {
+        result,
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to find your event',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Get('/asd/getPastEvents')
+  async getPastEvents(@Headers('authorization') authHeader: string) {
+    const token = authHeader?.split(' ')[1];
+    try {
+      const result = await this.eventsService.getPastEvents(token);
+      return {
+        result,
       };
     } catch (error) {
       throw new HttpException(
