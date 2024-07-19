@@ -56,11 +56,41 @@ export class EventService {
       const userId: number = decoded.userId;
 
       const events = await this.prisma.event.findMany({
-        where: { creatorId: userId },
+        where: {
+          userStatus: {
+            some: { userId: userId },
+          },
+        },
         include: {
           userStatus: {
             include: {
-              user: true,
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          pairings: {
+            include: {
+              person: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
+              santa: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                },
+              },
             },
           },
         },
