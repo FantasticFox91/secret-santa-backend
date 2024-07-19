@@ -32,6 +32,14 @@ export class EventService {
         },
       });
 
+      await this.prisma.userStatus.create({
+        data: {
+          userId: userId,
+          eventId: event.id,
+          status: 'ACCEPTED',
+        },
+      });
+
       return event;
     } catch (error) {
       console.error('Error creating new group:', error);
@@ -69,6 +77,19 @@ export class EventService {
     try {
       const event = await this.prisma.event.findUnique({
         where: { id: eventId },
+        include: {
+          pairings: {
+            include: {
+              person: true,
+              santa: true,
+            },
+          },
+          userStatus: {
+            include: {
+              user: true,
+            },
+          },
+        },
       });
 
       return event;
@@ -145,6 +166,118 @@ export class EventService {
     } catch (error) {
       console.error('Error updating event:', error);
       throw new Error('Unable to update event');
+    }
+  }
+
+  async getPastEvent(eventId) {
+    try {
+      const [event, pairings, userStatuses] = await Promise.all([
+        this.prisma.event.findUnique({
+          where: { id: eventId },
+          select: {
+            id: true,
+            name: true,
+            date: true,
+          },
+        }),
+        this.prisma.pairings.findMany({
+          where: { eventId },
+          include: {
+            person: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            santa: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        }),
+        this.prisma.userStatus.findMany({
+          where: { eventId },
+          select: {
+            id: true,
+            status: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
+        }),
+      ]);
+
+      const declinedUsers = [];
+      const acceptedUsers = [];
+      const failedUsers = [];
+
+      userStatuses.forEach((userStatus) => {
+        switch (userStatus.status) {
+          case 'DECLINED':
+            declinedUsers.push(userStatus);
+            break;
+          case 'ACCEPTED':
+            acceptedUsers.push(userStatus);
+            break;
+          case 'INVITED':
+            failedUsers.push(userStatus);
+            break;
+        }
+      });
+
+      return {
+        event,
+        pairings,
+        acceptedUsers,
+        declinedUsers,
+        failedUsers,
+      };
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      throw new Error('Unable to fetch user event');
+    }
+  }
+
+  async getPastEvents(token: string) {
+    try {
+      const decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET,
+      ) as jwt.JwtPayload;
+      const userId: number = decoded.userId;
+      const currentDate = new Date();
+
+      const pastEvents = await this.prisma.event.findMany({
+        where: {
+          userStatus: {
+            some: {
+              userId: userId,
+              status: 'ACCEPTED',
+            },
+          },
+          date: {
+            lt: currentDate,
+          },
+        },
+        select: {
+          id: true,
+          date: true,
+          name: true,
+        },
+      });
+
+      return pastEvents;
+    } catch (error) {
+      console.error('Error fetching user events:', error);
+      throw new Error('Unable to fetch user events');
     }
   }
 }
