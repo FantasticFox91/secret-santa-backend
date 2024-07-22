@@ -27,7 +27,7 @@ model User {
   email               String        @unique
   hashedPassword      String?
   accessToken         String?
-  refreshToken        String?
+  refreshToken        String?       @db.Text
   refreshTokenExpire  DateTime?
   firstName           String?
   lastName            String?

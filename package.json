@@ -19,6 +19,9 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  "prisma": {
+    "seed": "ts-node dist/prisma/seed.ts"
+  },
   "dependencies": {
     "@mailchimp/mailchimp_transactional": "^1.0.59",
     "@nestjs-modules/mailer": "^2.0.2",
@@ -65,7 +68,7 @@
     "tough-cookie": "^4.1.4",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.3",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   },

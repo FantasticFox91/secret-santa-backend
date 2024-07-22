@@ -19,6 +19,9 @@ RUN yarn build
 # Copy email templates
 COPY src/mail/templates /app/dist/mail/templates
 
+# Copy email templates
+COPY src/prisma/seed.ts /app/dist/prisma/seed.ts
+
 EXPOSE 80
 
 # Start the backend server
