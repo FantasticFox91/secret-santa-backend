@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Param,
+  Patch,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -63,6 +64,23 @@ export class UserController {
         {
           status: HttpStatus.BAD_REQUEST,
           error: 'Failed to find user',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('/info')
+  async updateUserInfo(@Body() body: { user }) {
+    const { user } = body;
+    try {
+      return this.userService.updateUserInfo(user);
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to update user',
         },
         HttpStatus.BAD_REQUEST,
       );

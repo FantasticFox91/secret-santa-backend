@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { LinkService } from 'src/link/link.service';
+import * as bcrypt from 'bcryptjs';
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaService,
-    // private link: LinkService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async getUserWishlist(userId, eventId) {
     try {
@@ -46,12 +43,42 @@ export class UserService {
     }
   }
 
-  async addUserWishlist(items: { name: string; url: string }[]) {
-    // Пройтись по всем элементам и добавить им данные из link module (Картинка, описание и т.д)
-    // items.map(async (item) => {
-    //   const response = await this.link.parseHtml(item.url);
-    // });
-    // Записать все элементы в базу данных с привязкой к конкретному пользователю и конкретному событию.
-    // Вернуть true или ошибку
+  async updateUserInfo(user) {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: user.id },
+    });
+
+    let password = '';
+
+    const isPasswordChanged = await bcrypt.compare(
+      user.password,
+      currentUser.hashedPassword,
+    );
+
+    if (user.password && !isPasswordChanged) {
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync(user.password, salt);
+      password = hash;
+    } else {
+      password = currentUser.hashedPassword;
+    }
+
+    const userName = user.name.split(' ');
+
+    const firstName = userName[0] || currentUser.firstName;
+    const lastName = userName[1] || currentUser.lastName;
+    const email = user.email || currentUser.email;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        hashedPassword: password,
+      },
+    });
+
+    return updatedUser;
   }
 }

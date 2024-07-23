@@ -54,11 +54,15 @@ export class EventService {
         process.env.JWT_SECRET,
       ) as jwt.JwtPayload;
       const userId: number = decoded.userId;
+      const currentDate = new Date();
 
       const events = await this.prisma.event.findMany({
         where: {
           userStatus: {
             some: { userId: userId },
+          },
+          date: {
+            gt: currentDate,
           },
         },
         include: {
