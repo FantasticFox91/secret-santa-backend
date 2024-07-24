@@ -11,6 +11,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { MatchingModule } from './matching/matching.module';
 import { TaskSchedulerModule } from './task-scheduler/task-scheduler.module';
 import { ThankYouModule } from './thank-you/thank-you.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -24,6 +25,9 @@ import { ThankYouModule } from './thank-you/thank-you.module';
     MatchingModule,
     TaskSchedulerModule,
     ThankYouModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

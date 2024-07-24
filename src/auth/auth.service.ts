@@ -121,7 +121,12 @@ export class AuthService {
     }
   }
 
-  async inviteUser(email: string, name: string, eventID: string) {
+  async inviteUser(
+    email: string,
+    name: string,
+    lastName: string,
+    eventID: string,
+  ) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -143,6 +148,7 @@ export class AuthService {
       user = await this.prisma.user.create({
         data: {
           firstName: name,
+          lastName: lastName,
           email: email,
           role: 'USER',
           status: {

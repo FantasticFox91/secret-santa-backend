@@ -1,11 +1,15 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { s3StorageService } from '../s3-storage/s3-storage.service';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class EventService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3Storage: s3StorageService,
+  ) {}
 
   async createNewGroup(
     token: string,
@@ -159,15 +163,23 @@ export class EventService {
     }
   }
 
-  async acceptInvitation(email, password) {
+  async acceptInvitation(email, password, file) {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
 
     try {
+      let avatarLink = null;
+
+      if (file) {
+        await this.s3Storage.createBucketIfNotExists();
+        avatarLink = await this.s3Storage.uploadFile(file);
+      }
+
       await this.prisma.user.update({
         where: { email },
         data: {
           hashedPassword: hash,
+          avatar: avatarLink,
         },
       });
 

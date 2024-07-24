@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcryptjs';
+import { s3StorageService } from '../s3-storage/s3-storage.service';
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private s3Storage: s3StorageService,
+  ) {}
 
   async getUserWishlist(userId, eventId) {
     try {
@@ -43,12 +47,13 @@ export class UserService {
     }
   }
 
-  async updateUserInfo(user) {
+  async updateUserInfo(user, file) {
     const currentUser = await this.prisma.user.findUnique({
       where: { id: user.id },
     });
 
     let password = '';
+    let avatarLink = currentUser.avatar;
 
     const isPasswordChanged = await bcrypt.compare(
       user.password,
@@ -61,6 +66,11 @@ export class UserService {
       password = hash;
     } else {
       password = currentUser.hashedPassword;
+    }
+
+    if (file) {
+      await this.s3Storage.createBucketIfNotExists();
+      avatarLink = await this.s3Storage.uploadFile(file);
     }
 
     const userName = user.name.split(' ');
@@ -76,6 +86,7 @@ export class UserService {
         lastName: lastName,
         email: email,
         hashedPassword: password,
+        avatar: avatarLink,
       },
     });
 

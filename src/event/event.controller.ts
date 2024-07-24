@@ -9,9 +9,12 @@ import {
   HttpStatus,
   HttpException,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('events')
 export class EventController {
@@ -49,12 +52,19 @@ export class EventController {
   }
 
   @Post('accept')
+  @UseInterceptors(FileInterceptor('file'))
   async acceptInvitation(
-    @Body() body: { email: string; password: string; avatar: File },
+    @Body()
+    body: { user: string },
+    @UploadedFile() file,
   ) {
-    const { email, password } = body;
+    const user = JSON.parse(body.user);
     try {
-      await this.eventsService.acceptInvitation(email, password);
+      await this.eventsService.acceptInvitation(
+        user.email,
+        user.password,
+        file,
+      );
       return {
         status: HttpStatus.OK,
         message: 'Invitation accepted',
