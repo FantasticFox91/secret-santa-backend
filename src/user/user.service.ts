@@ -92,4 +92,23 @@ export class UserService {
 
     return updatedUser;
   }
+
+  async deleteInvitedUser(userId: number, eventId) {
+    try {
+      await this.prisma.$transaction([
+        this.prisma.userStatus.deleteMany({
+          where: {
+            userId,
+            eventId: eventId,
+          },
+        }),
+        this.prisma.user.delete({
+          where: { id: userId },
+        }),
+      ]);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw new Error('Unable to delete user');
+    }
+  }
 }
