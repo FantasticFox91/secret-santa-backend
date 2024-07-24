@@ -34,10 +34,16 @@ export class AuthController {
   @Post('invite')
   @HttpCode(201)
   async inviteUser(
-    @Body() body: { email: string; name: string; eventID: string },
+    @Body()
+    body: {
+      email: string;
+      name: string;
+      lastName: string;
+      eventID: string;
+    },
   ) {
-    const { email, name, eventID } = body;
-    return this.authService.inviteUser(email, name, eventID);
+    const { email, name, lastName, eventID } = body;
+    return this.authService.inviteUser(email, name, lastName, eventID);
   }
 
   @Post('login/token')

@@ -8,9 +8,12 @@ import {
   HttpStatus,
   Param,
   Patch,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -72,15 +75,16 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @Patch('/info')
-  async updateUserInfo(@Body() body: { user }) {
-    const { user } = body;
+  @UseInterceptors(FileInterceptor('file'))
+  async updateUserInfo(@Body() body: { user: string }, @UploadedFile() file) {
+    const user = JSON.parse(body.user);
     try {
-      return this.userService.updateUserInfo(user);
+      return await this.userService.updateUserInfo(user, file);
     } catch (error) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
-          error: 'Failed to update user',
+          error: `Failed to update user ${error}`,
         },
         HttpStatus.BAD_REQUEST,
       );
