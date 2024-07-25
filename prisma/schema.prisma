@@ -64,7 +64,7 @@ model UserStatus {
   userId            Int
   user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   eventId           String
-  event             Event         @relation(fields: [eventId], references: [id])
+  event             Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
   status            Status
 }
 
@@ -90,7 +90,7 @@ model WishList {
   updatedAt         DateTime      @updatedAt
   order             Int?
   eventId           String
-  event             Event         @relation(fields: [eventId], references: [id])
+  event             Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
   siteImage         String?
   siteTitle         String?
   siteDescription   String?       @db.Text

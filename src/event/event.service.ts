@@ -368,6 +368,17 @@ export class EventService {
     }
   }
 
+  async deleteEvent(eventId) {
+    try {
+      await this.prisma.event.delete({
+        where: { id: eventId },
+      });
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      throw new Error('Unable to delete event');
+    }
+  }
+
   transformToDDMMYYYY(dateString: string): string {
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
