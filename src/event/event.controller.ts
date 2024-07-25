@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Delete,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -198,6 +199,21 @@ export class EventController {
         {
           status: HttpStatus.BAD_REQUEST,
           error: 'Failed to decline invitation',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  @Delete('delete/:eventId')
+  async deleteEvent(@Param() params: { eventId: string }) {
+    try {
+      await this.eventsService.deleteEvent(params.eventId);
+    } catch (error) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Failed to delete event',
         },
         HttpStatus.BAD_REQUEST,
       );
