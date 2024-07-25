@@ -63,6 +63,7 @@ export class EventController {
       await this.eventsService.acceptInvitation(
         user.email,
         user.password,
+        user.eventId,
         file,
       );
       return {

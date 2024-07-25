@@ -41,7 +41,6 @@ export class MatchingService {
 
   async matchUsers(eventId) {
     try {
-      // Fetch all accepted users and their statuses in a single query
       const acceptedUsers = await this.prisma.user.findMany({
         where: {
           status: {
@@ -49,7 +48,7 @@ export class MatchingService {
               status: {
                 equals: 'ACCEPTED',
               },
-              eventId: eventId, // Make sure to filter by eventId if relevant
+              eventId: eventId,
             },
           },
         },
@@ -72,11 +71,8 @@ export class MatchingService {
 
       await Promise.all(
         randomUsers.map(async (user, index) => {
-          // Calculate the personId for the current user
           const personIndex = (index + 1) % randomUsers.length;
           const person = randomUsers[personIndex];
-
-          // Create the pairing
           await this.prisma.pairings.create({
             data: {
               eventId: eventId,
@@ -85,7 +81,6 @@ export class MatchingService {
             },
           });
 
-          // Construct the email context
           const context = {
             name: `${user.firstName} ${user.lastName || ''}`,
             person: `${person.firstName} ${person.lastName || ''}`,
@@ -95,13 +90,11 @@ export class MatchingService {
 
           const secretSatnaLink = `http://localhost:3000/thank-you/${user.id}`;
 
-          // Construct the email context
           const thankYouEmailContext = {
             name: `${user.firstName} ${user.lastName || ''}`,
             letterLink: secretSatnaLink,
           };
 
-          // Send the email
           await this.mailerService.sendEmail(
             user.email,
             "Ho-Ho-Hold Up! You've Been Secretly Santa'd!",
@@ -109,7 +102,6 @@ export class MatchingService {
             context,
           );
 
-          // Schedule the thank-you email to be sent one day after the event finishes
           const eventFinishDate = new Date(event.date);
           const sendThankYouDate = new Date(eventFinishDate);
           sendThankYouDate.setDate(sendThankYouDate.getDate() + 1);

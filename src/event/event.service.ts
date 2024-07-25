@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { s3StorageService } from '../s3-storage/s3-storage.service';
+import { MailService } from 'src/mail/mail.service';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 
@@ -9,6 +10,7 @@ export class EventService {
   constructor(
     private prisma: PrismaService,
     private s3Storage: s3StorageService,
+    private mailerService: MailService,
   ) {}
 
   async createNewGroup(
@@ -43,6 +45,25 @@ export class EventService {
           status: 'ACCEPTED',
         },
       });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (remind) {
+        const context = {
+          name: `${user.firstName} ${user.lastName || ''}`,
+          date: this.transformToDDMMYYYY(String(event.date)),
+        };
+
+        this.mailerService.scheduleEmail(
+          user.email,
+          '🎅⏰ The Countdown Claus is Here: Your Secret Santa Event in One Week! 🎁⏰',
+          'event-reminder',
+          context,
+          date,
+        );
+      }
 
       return event;
     } catch (error) {
@@ -163,7 +184,7 @@ export class EventService {
     }
   }
 
-  async acceptInvitation(email, password, file) {
+  async acceptInvitation(email, password, eventId, file) {
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
 
@@ -175,7 +196,11 @@ export class EventService {
         avatarLink = await this.s3Storage.uploadFile(file);
       }
 
-      await this.prisma.user.update({
+      const event = await this.prisma.event.findUnique({
+        where: { id: eventId },
+      });
+
+      const user = await this.prisma.user.update({
         where: { email },
         data: {
           hashedPassword: hash,
@@ -185,6 +210,7 @@ export class EventService {
 
       await this.prisma.userStatus.updateMany({
         where: {
+          eventId: eventId,
           user: {
             email: email,
           },
@@ -193,6 +219,21 @@ export class EventService {
           status: 'ACCEPTED',
         },
       });
+
+      if (event.sendReminder) {
+        const context = {
+          name: `${user.firstName} ${user.lastName || ''}`,
+          date: this.transformToDDMMYYYY(String(event.date)),
+        };
+
+        this.mailerService.scheduleEmail(
+          user.email,
+          '🎅⏰ The Countdown Claus is Here: Your Secret Santa Event in One Week! 🎁⏰',
+          'event-reminder',
+          context,
+          event.date,
+        );
+      }
     } catch (error) {}
   }
 
@@ -325,5 +366,14 @@ export class EventService {
       console.error('Error fetching user events:', error);
       throw new Error('Unable to fetch user events');
     }
+  }
+
+  transformToDDMMYYYY(dateString: string): string {
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString();
+
+    return `${day}.${month}.${year}`;
   }
 }
